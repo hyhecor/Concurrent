@@ -1,0 +1,192 @@
+﻿using NUnit.Framework;
+using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Concurrent.Generic
+{
+    class Select_test
+    {
+
+        Func<IChannel<int>> new_channel = () => new BufferedChannel<int>(1);
+
+        Func<IChannel<int>, int, Func<int>> new_sender { get; set; }
+
+        [SetUp]
+        public void SetUp()
+        {
+            new_sender = new Func<IChannel<int>, int, Func<int>>((channel, max) =>
+            {
+                Random rand = new Random();
+                return () =>
+                {
+                    int send = 0;
+                    foreach (var item in System.Linq.Enumerable.Range(1, max))
+                    {
+                        int n = rand.Next(1, 10);
+                        channel.In(n);
+                        send += n;
+
+                        //int n = send;
+                        //channel.In(n);
+                        //send += 1;
+                    }
+                    return send;
+                };
+            });
+
+        }
+
+        [Test]
+        public void TestSelectTypes()
+        {
+            var rangemax = 3;
+
+            BufferedChannel<object> channelclose = new BufferedChannel<object>();
+            BufferedChannel<int> channel0 = new BufferedChannel<int>();
+            BufferedChannel<string> channel1 = new BufferedChannel<string>();
+            BufferedChannel<bool> channel2 = new BufferedChannel<bool>();
+
+            //Task.Delay(1000).ContinueWith((t) => channelclose.In(true));
+            var t0 = Task.Run((Action)(() =>
+            {
+                Enumerable.Range(0, rangemax).Foreach((int i) => channel0.In(i));
+                channel0.Close();
+            }));
+            var t1 = Task.Run((Action)(() =>
+            {
+                Enumerable.Range(0, rangemax).Foreach((int i) => channel1.In($"Index:{i}"));
+                channel1.Close();
+            }));
+            var t2 = Task.Run((Action)(() =>
+            {
+                Enumerable.Range(0, rangemax).Foreach((int i) => channel2.In(0 == i % 2));
+                channel2.Close();
+            }));
+
+
+            Task.Run(() =>
+            {
+                t0.Wait();
+                t1.Wait();
+                t2.Wait();
+
+                channelclose.In(true);
+            });
+
+
+            var select = new Select();
+            var get_value0 = select.Add(channel0);
+            var get_value1 = select.Add(channel1);
+            var get_value2 = select.Add(channel2);
+            var get_close = select.Add(channelclose);
+
+            bool run = true;
+            while (run)
+            {
+                switch(select.Wait())
+                {
+                    case 0:
+                        Console.WriteLine($"channel0: {get_value0()}");
+                        break;
+                    case 1:
+                        Console.WriteLine($"channel0: {get_value1()}");
+                        break;
+                    case 2:
+                        Console.WriteLine($"channel0: {get_value2()}");
+                        break;
+                    case 3:
+                        Console.WriteLine($"channel0: {get_close()}");
+                        run = false;
+                        break;
+                    case WaitHandle.WaitTimeout:
+                        break;
+                    default:
+                        run = false;
+                        break;
+                }
+            }
+        }
+
+        [Test]
+        public void TestSelectSimple()
+        {
+            var channel_0 = new_channel();
+            var channel_1 = new_channel();
+            var channel_close = new_channel();
+
+            int sendcount = 1 << 10;
+
+
+            int expected_0 = 0;
+            var t0 = Task.Run(() =>
+            {
+                expected_0 = Task.Run(new_sender(channel_0, sendcount)).Result;
+                channel_0.Close();
+                Console.WriteLine($"{DateTime.Now} Sender: {expected_0}");
+            });
+
+            int expected_1 = 0;
+            var t1= Task.Run(() =>
+            {
+                expected_1 = Task.Run(new_sender(channel_1, sendcount)).Result;
+                channel_1.Close();
+                Console.WriteLine($"{DateTime.Now} Sender: {expected_1}");
+            });
+
+            Task.Run(() => 
+            {
+                t0.Wait();
+                t1.Wait();
+
+                channel_close.In(1);
+            });
+
+            int actual_0 = 0;
+            int actual_1 = 0;
+
+            var select = new Select();
+            var get_value0 = select.Add(channel_0);
+            var get_value1 = select.Add(channel_1);
+            var get_close = select.Add(channel_close);
+
+            bool run = true;
+            while (run)
+            {
+                switch (select.Wait())
+                {
+                    case 0:
+                        var value0 = get_value0();
+                        actual_0 += value0;
+                        break;
+                    case 1:
+                        var value1 = get_value1();
+                        actual_1 += value1;
+                        break;
+                    case 2:
+                        var value2 = get_close();
+                        run = false;
+                        break;
+                    case WaitHandle.WaitTimeout:
+                        run = false;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            //select 동작은 값이 보장되지 않음 
+            //중간에 종료되면 채널에 넣은 데이터를 중간에 가져오지 않는다.
+            Console.WriteLine($"{DateTime.Now} {expected_0} {actual_0}");
+            Console.WriteLine($"{DateTime.Now} {expected_1} {actual_1}");
+            Assert.AreEqual(expected_0, actual_0);
+            Assert.AreEqual(expected_1, actual_1);
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+        }
+    }
+}

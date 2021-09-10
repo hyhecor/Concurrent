@@ -36,12 +36,7 @@ namespace Concurrent.Generic.QoS.Test
 
             new_reciver = new Func<IChannel<int>, Func<int>>((channel) =>
             {
-                return () =>
-                {
-                    int actual = 0;
-                    channel.Range().Foreach(item => actual += item);
-                    return actual;
-                };
+                return () => channel.Range().Aggregate(0, (a, b) => a + b);
             });
         }
 
@@ -60,7 +55,7 @@ namespace Concurrent.Generic.QoS.Test
             var channelOuts = Enumerable.Range(0, recivers_count).Select(x => fanout.NewChannelOut());
 
             IEnumerable<Task<int>> senders = Enumerable.Range(0, senders_count).Select(i => Task.Run(new_sender(channelIn, sendcount)));
-            IEnumerable<Task<int>> recivers = channelOuts.Select(channel => Task.Run(new_reciver(channel)));
+            IEnumerable<Task<int>> recivers = channelOuts.Map(channel => Task.Run(new_reciver(channel)));
 
 
             int expected = 0;
@@ -72,22 +67,21 @@ namespace Concurrent.Generic.QoS.Test
                         var send = t.Result;
                         Console.WriteLine($"{DateTime.Now} Sender{seq}: {send}");
                         return send;
-                    })
-                    .Aggregate(0, (a, b) => a + b);
+                    }).Aggregate(0, (a, b) => a + b);
                 channelIn.Close();
             });
 
-            recivers = recivers.ToArray();
+            //recivers = recivers.ToArray();
 
             fanout.Run();
 
-            recivers.Select((t, seq) =>
+            recivers.Map((seq, t) =>
             {
                 var actuals = t.Result;
                 Console.WriteLine($"{DateTime.Now} Reciver{seq}: {actuals}");
                 Assert.AreEqual(expected, actuals);
                 return actuals;
-            }).ToArray();
+            });
         }
 
         [TearDown]

@@ -16,7 +16,7 @@ namespace Concurrent.Generic
     /// <para>카운트가 크다면, 큐가 빠져나갈 때 까지 대기</para> 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class BufferedChannel<T> : IChannel<T>, IDisposable
+    public sealed class BufferedChannel<T> : IChannel<T>, IDisposable
     {
         public void Dispose()
         {

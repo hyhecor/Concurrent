@@ -3,8 +3,9 @@
 #define CHANNEL_FIFO
 #endif
 using System;
+#if CHANNEL_QUEUE
 using System.Collections.Concurrent;
-using System.Collections.Generic;
+#endif
 using System.Threading;
 
 namespace Concurrent.Generic
@@ -16,7 +17,7 @@ namespace Concurrent.Generic
     /// <para></para> 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class Channel<T> : IChannel<T>, IDisposable
+    public sealed class Channel<T> : IChannel<T>, IDisposable
     {
         public void Dispose()
         {

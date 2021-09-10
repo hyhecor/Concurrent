@@ -34,12 +34,7 @@ namespace Concurrent.Generic
 
             new_reciver = new Func<IChannel< int> , Func<int> >((channel) =>
             {
-                return () =>
-                {
-                    int actual = 0;
-                    channel.Range().Foreach(item => actual += item);
-                    return actual;
-                };
+                return () => channel.Range().Aggregate(0, (a, b) => a + b);
             });
         }
 
@@ -110,8 +105,7 @@ namespace Concurrent.Generic
                     var send = t.Result;
                     Console.WriteLine($"{DateTime.Now} Sender{seq}: {send}");
                     return send;
-                })
-                .Aggregate(0, (a, b) => a + b);
+                }).Aggregate(0, (a, b) => a + b);
                 channel.Close();
             });
 
@@ -121,8 +115,7 @@ namespace Concurrent.Generic
                     var recive = t.Result;
                     Console.WriteLine($"{DateTime.Now} Reciver{seq}: {recive}");
                     return recive;
-                })
-                .Aggregate(0, (a, b) => a + b);
+                }).Aggregate(0, (a, b) => a + b);
 
             Console.WriteLine($"{DateTime.Now} {expected } {actual}");
             Assert.AreEqual(expected, actual);
@@ -146,10 +139,9 @@ namespace Concurrent.Generic
                 .Select((t, seq) =>
                 {
                     var send = t.Result;
-                    Console.WriteLine($"{DateTime.Now} Sender{seq}: {send}"); 
+                    Console.WriteLine($"{DateTime.Now} Sender{seq}: {send}");
                     return send;
-                })
-                .Aggregate(0, (a, b) => a + b);
+                }).Aggregate(0, (a, b) => a + b);
                 channel.Close();
             });
 
@@ -159,8 +151,7 @@ namespace Concurrent.Generic
                     var recive = t.Result;
                     Console.WriteLine($"{DateTime.Now} Reciver{seq}: {recive}");
                     return recive;
-                })
-                .Aggregate(0, (a, b) => a + b);
+                }).Aggregate(0, (a, b) => a + b);
 
             Console.WriteLine($"{DateTime.Now} {expected } {actual}");
             Assert.AreEqual(expected, actual);

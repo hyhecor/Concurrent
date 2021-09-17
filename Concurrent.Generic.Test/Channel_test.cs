@@ -2,8 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+#if NET35
+using System.Threading;
+#else
 using System.Threading.Tasks;
-
+#endif
 
 namespace Concurrent.Generic
 {
@@ -45,8 +48,11 @@ namespace Concurrent.Generic
             var channel = new_channel();
 
             int sendcount = 1 << 10;
+#if NET35
+            var task = new Thread(new_sender(channel, sendcount));
+#else
             var task = Task.Run(new_sender(channel, sendcount));
-
+#endif
             int expected = 0;
             Task.Run(() =>
             {

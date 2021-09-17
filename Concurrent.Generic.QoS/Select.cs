@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -54,8 +53,16 @@ namespace Concurrent.Generic
 
             Closers.Add(channel.Close);
             EventWaitHandles.Add(OnSignalIn);
-            Tasks.Add(Task.Run(KeepReadChannel)); //백그라운드 실행
 
+#if NET40
+            var task = new Task(KeepReadChannel);
+            task.Start();
+            Tasks.Add(task); //백그라운드 실행
+#elif NET45_OR_GREATER
+            Tasks.Add(Task.Run(KeepReadChannel)); //백그라운드 실행
+#else
+            Tasks.Add(Task.Run(KeepReadChannel)); //백그라운드 실행
+#endif
             T value = default;
             return () =>
             {

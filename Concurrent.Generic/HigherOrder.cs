@@ -18,11 +18,11 @@ namespace Concurrent.Generic
         /// <param name="selector"></param>
         public static void Foreach<TSource>(this IEnumerable<TSource> source, Action<TSource> selector)
         {
-            Foreach(source, selector_);
+            source.Foreach( selector_);
 
-            bool selector_(int index, TSource source)
+            bool selector_(int index, TSource source_)
             {
-                selector(source);
+                selector(source_);
                 return true;
             }
         }
@@ -34,11 +34,11 @@ namespace Concurrent.Generic
         /// <param name="selector"></param>
         public static void Foreach<TSource>(this IEnumerable<TSource> source, Action<int, TSource> selector)
         {
-            Foreach(source, selector_);
+            source.Foreach(selector_);
 
-            bool selector_(int index, TSource source)
+            bool selector_(int index, TSource source_)
             {
-                selector(index, source);
+                selector(index, source_);
                 return true;
             }
         }
@@ -50,11 +50,11 @@ namespace Concurrent.Generic
         /// <param name="selector"></param>
         public static void Foreach<TSource>(this IEnumerable<TSource> source, Func<TSource, bool> selector)
         {
-            Foreach(source, selector_);
+            source.Foreach( selector_);
 
-            bool selector_(int index, TSource source)
+            bool selector_(int index, TSource source_)
             {
-                return selector(source);
+                return selector(source_);
             }
         }
         /// <summary>
@@ -86,11 +86,11 @@ namespace Concurrent.Generic
         /// <returns></returns>
         public static IEnumerable<TResult> Map<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
         {
-            return Map(source, selector_);
+            return source.Map(selector_);
 
-            TResult selector_(int index, TSource source)
+            TResult selector_(int index, TSource source_)
             {
-                return selector(source);
+                return selector(source_);
             }
         }
         /// <summary>
@@ -126,11 +126,11 @@ namespace Concurrent.Generic
         /// <returns></returns>
         public static TResult Fold<TSource, TResult>(this IEnumerable<TSource> source, TResult init, Func<TResult, TSource, TResult> selector)
         {
-            return Fold(source, init, selector_);
+            return source.Fold(init, selector_);
 
-            TResult selector_(int index, TResult result, TSource source)
+            TResult selector_(int index, TResult result, TSource source_)
             {
-                return selector(result, source);
+                return selector(result, source_);
             }
         }
         /// <summary>

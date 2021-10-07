@@ -1,37 +1,37 @@
 ﻿using System.Collections.Generic;
 namespace Concurrent.Generic
 {
-    public sealed class ChannelFIFO<T> : IQueue<T>
+    internal sealed class FIFO<T> : IQueue<T>
     {
-        LinkedList<T> FIFO { get; set; } = new LinkedList<T>();
+        LinkedList<T> LList { get; set; } = new LinkedList<T>();
 
         public int Count
         {
             get
             {
-                lock (FIFO)
+                lock (LList)
                 {
-                    return FIFO.Count;
+                    return LList.Count;
                 }
             }
         }
 
         public void Enqueue(T item)
         {
-            lock (FIFO)
+            lock (LList)
             {
-                FIFO.AddLast(item);
+                LList.AddLast(item);
             }
         }
 
-        public bool TryEnqueue(T item, int length)
+        public bool TryEnqueue(T item, int max)
         {
-            lock (FIFO)
+            lock (LList)
             {
-                if (length <= FIFO.Count)
+                if (max <= LList.Count)
                     return false;
 
-                FIFO.AddLast(item);
+                LList.AddLast(item);
                 return true;
             }
         }
@@ -39,23 +39,23 @@ namespace Concurrent.Generic
 
         public bool TryDequeue(out T item)
         {
-            lock (FIFO)
+            lock (LList)
             {
                 item = default(T);
-                if (FIFO.First is null)
+                if (LList.First is null)
                     return false;
 
-                item = FIFO.First.Value;
-                FIFO.RemoveFirst();
+                item = LList.First.Value;
+                LList.RemoveFirst();
                 return true;
             }
         }
 
         public void Clear()
         {
-            lock (FIFO)
+            lock (LList)
             {
-                FIFO.Clear();
+                LList.Clear();
             }
         }
     }

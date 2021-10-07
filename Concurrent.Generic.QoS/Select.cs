@@ -7,10 +7,10 @@ namespace Concurrent.Generic
 {
     public class Select : IDisposable
     {
-        ConcurrentList<Action> Closers { get; set; } = new ConcurrentList<Action>();
-        ConcurrentList<Task> Tasks { get; set; } = new ConcurrentList<Task>();
+        BlockList<Action> Closers { get; set; } = new BlockList<Action>();
+        BlockList<Task> Tasks { get; set; } = new BlockList<Task>();
 
-        ConcurrentList<EventWaitHandle> EventWaitHandles { get; set; } = new ConcurrentList<EventWaitHandle>();
+        BlockList<EventWaitHandle> EventWaitHandles { get; set; } = new BlockList<EventWaitHandle>();
 
         public void Dispose()
         {
@@ -46,10 +46,11 @@ namespace Concurrent.Generic
         /// <param name="channel"></param>
         /// <param name="callBack"></param>
         /// <returns></returns>
-        public Func<T> Add<T>(IChannel<T> channel)
+        public Selector<T> Add<T>(IChannel<T> channel)
         {
             var OnSignalIn = NewEventWaitHandle();
             var OnSignalOut = NewEventWaitHandle();
+            var id = Closers.Count();
 
             Closers.Add(channel.Close);
             EventWaitHandles.Add(OnSignalIn);
@@ -64,12 +65,12 @@ namespace Concurrent.Generic
             Tasks.Add(Task.Run(KeepReadChannel)); //백그라운드 실행
 #endif
             T value = default;
-            return () =>
+            return new Selector<T>(id, () =>
             {
                 var v = value; //get value 
                 OnSignalOut.Set(); //after event set
                 return v;
-            };
+            });
 
             void KeepReadChannel()
             {
@@ -79,8 +80,9 @@ namespace Concurrent.Generic
 
                     //채널 종료
                     if (get_func is null)
-                        return; 
+                        return;
 
+                    OnSignalOut.Reset();
                     value = get_func();
                     OnSignalIn.Set(); //Set
                     OnSignalOut.WaitOne(); //Wait
@@ -109,6 +111,19 @@ namespace Concurrent.Generic
             }
 #endif
             return index;
+        }
+    }
+
+    public class Selector<T>
+    {
+        Func<T> GetValue { get; }
+
+        public int Id { get; }
+        public T Value { get => GetValue(); }
+        public Selector(int id, Func<T> getter)
+        {
+            Id = id;
+            GetValue = getter;
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace Concurrent.Generic
 {
-    public class ConcurrentList<T> : IEnumerable<T>
+    public class BlockList<T> : IEnumerable<T>
     {
         List<T> List { get; set; } = new List<T>();
         public T this[int index] { get => List[index]; set => List[index] = value; }

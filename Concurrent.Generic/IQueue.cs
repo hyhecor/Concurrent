@@ -17,6 +17,13 @@ namespace Concurrent.Generic
         /// <param name="item"></param>
         void Enqueue(T item);
         /// <summary>
+        /// 큐 넣기; 큐 카운트에 제한되는 큐 넣기
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
+        bool TryEnqueue(T item, int max);
+        /// <summary>
         /// 큐에서 빼기 시도
         /// </summary>
         /// <param name="item"></param>

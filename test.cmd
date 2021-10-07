@@ -56,7 +56,7 @@ REM __TEST FINISHED__
 
 REM __REPORT__
 REM report option
-SET report="~notepad"
+SET report="!notepad"
 REM if report true then report with notepad
 if report=="notepad" (
 	START notepad %logdir%\%logfile%

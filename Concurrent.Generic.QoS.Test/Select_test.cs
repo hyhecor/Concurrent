@@ -4,12 +4,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Concurrent.Generic
+namespace Concurrent.Generic.QoS.Test
 {
     class Select_test
     {
 
-        Func<IChannel<int>> new_channel = () => new BufferedChannel<int>(1);
+        Func<IChannel<int>> new_channel = () => new Channel<int>(1);
 
         Func<IChannel<int>, int, Func<int>> new_sender { get; set; }
 
@@ -43,10 +43,10 @@ namespace Concurrent.Generic
         {
             var rangemax = 3;
 
-            BufferedChannel<object> channelclose = new BufferedChannel<object>();
-            BufferedChannel<int> channel0 = new BufferedChannel<int>();
-            BufferedChannel<string> channel1 = new BufferedChannel<string>();
-            BufferedChannel<bool> channel2 = new BufferedChannel<bool>();
+            Channel<object> channelclose = new Channel<object>();
+            Channel<int> channel0 = new Channel<int>();
+            Channel<string> channel1 = new Channel<string>();
+            Channel<bool> channel2 = new Channel<bool>();
 
             //Task.Delay(1000).ContinueWith((t) => channelclose.In(true));
             var t0 = Task.Run((Action)(() =>
@@ -77,34 +77,57 @@ namespace Concurrent.Generic
 
 
             var select = new Select();
-            var get_value0 = select.Add(channel0);
-            var get_value1 = select.Add(channel1);
-            var get_value2 = select.Add(channel2);
-            var get_close = select.Add(channelclose);
+            var selector0 = select.Add(channel0);
+            var selector1 = select.Add(channel1);
+            var selector2 = select.Add(channel2);
+            var closer = select.Add(channelclose);
 
             bool run = true;
             while (run)
             {
-                switch(select.Wait())
+                //switch(select.Wait())
+                //{
+                //    case 0:
+                //        Console.WriteLine($"channel0: {get_value0()}");
+                //        break;
+                //    case 1:
+                //        Console.WriteLine($"channel0: {get_value1()}");
+                //        break;
+                //    case 2:
+                //        Console.WriteLine($"channel0: {get_value2()}");
+                //        break;
+                //    case 3:
+                //        Console.WriteLine($"channel0: {get_close()}");
+                //        run = false;
+                //        break;
+                //    case WaitHandle.WaitTimeout:
+                //        break;
+                //    default:
+                //        run = false;
+                //        break;
+                //}
+                var id = select.Wait();
+                if (selector0.Id == id)
                 {
-                    case 0:
-                        Console.WriteLine($"channel0: {get_value0()}");
-                        break;
-                    case 1:
-                        Console.WriteLine($"channel0: {get_value1()}");
-                        break;
-                    case 2:
-                        Console.WriteLine($"channel0: {get_value2()}");
-                        break;
-                    case 3:
-                        Console.WriteLine($"channel0: {get_close()}");
-                        run = false;
-                        break;
-                    case WaitHandle.WaitTimeout:
-                        break;
-                    default:
-                        run = false;
-                        break;
+                    Console.WriteLine($"selector0: {selector0.Value}");
+                }
+                else if (selector1.Id == id)
+                {
+                    Console.WriteLine($"selector1: {selector1.Value}");
+                }
+                else if (selector2.Id == id)
+                {
+                    Console.WriteLine($"selector2: {selector2.Value}");
+                }
+                else if (closer.Id == id)
+                {
+                    Console.WriteLine($"closer: {closer.Value}");
+                    run = false;
+                }
+                else if (WaitHandle.WaitTimeout == id)
+                {
+                    Console.WriteLine($"timeout");
+                    run = false;
                 }
             }
         }
@@ -147,9 +170,9 @@ namespace Concurrent.Generic
             int actual_1 = 0;
 
             var select = new Select();
-            var get_value0 = select.Add(channel_0);
-            var get_value1 = select.Add(channel_1);
-            var get_close = select.Add(channel_close);
+            var selector0 = select.Add(channel_0);
+            var selector1 = select.Add(channel_1);
+            var closer = select.Add(channel_close);
 
             bool run = true;
             while (run)
@@ -157,15 +180,15 @@ namespace Concurrent.Generic
                 switch (select.Wait())
                 {
                     case 0:
-                        var value0 = get_value0();
+                        var value0 = selector0.Value;
                         actual_0 += value0;
                         break;
                     case 1:
-                        var value1 = get_value1();
+                        var value1 = selector1.Value;
                         actual_1 += value1;
                         break;
                     case 2:
-                        var value2 = get_close();
+                        var value2 = closer.Value;
                         run = false;
                         break;
                     case WaitHandle.WaitTimeout:

@@ -2,17 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-#if NET35
-using System.Threading;
-#else
 using System.Threading.Tasks;
-#endif
 
-namespace Concurrent.Generic
+namespace Concurrent.Generic.Test
 {
     class Channel_test
     {
-        Func<IChannel<int>> new_channel = () => new Channel<int>();
+        Func<IChannel<int>> new_channel = () => new Channel<int>(16);
 
         Func<IChannel<int>, int, Func<int>> new_sender { get; set; }
         Func<IChannel<int>, Func<int>> new_reciver { get; set; }
@@ -36,7 +32,7 @@ namespace Concurrent.Generic
                 };
             });
 
-            new_reciver = new Func<IChannel<int>, Func<int>>((channel) =>
+            new_reciver = new Func<IChannel< int> , Func<int> >((channel) =>
             {
                 return () => channel.Range().Aggregate(0, (a, b) => a + b);
             });
@@ -45,14 +41,10 @@ namespace Concurrent.Generic
         [Test]
         public void TestChannel()
         {
-            var channel = new_channel();
-
             int sendcount = 1 << 10;
-#if NET35
-            var task = new Thread(new_sender(channel, sendcount));
-#else
+            var channel = new_channel();
             var task = Task.Run(new_sender(channel, sendcount));
-#endif
+
             int expected = 0;
             Task.Run(() =>
             {
@@ -85,7 +77,6 @@ namespace Concurrent.Generic
                 channel.Close();
                 Console.WriteLine($"{DateTime.Now} Sender: {expected}");
             });
-
             int actual = channel.Range().Aggregate(0, (a, b) => a + b);
 
             Console.WriteLine($"{DateTime.Now} {expected} {actual}");
@@ -102,7 +93,7 @@ namespace Concurrent.Generic
             int sendcount = 1 << 10;
             var senders_count = 16;
             var recivers_count = 1;
-            IEnumerable<Task<int>> senders = Enumerable.Range(0, senders_count).Select(i => Task.Run(new_sender(channel, sendcount))); 
+            IEnumerable<Task<int>> senders = Enumerable.Range(0, senders_count).Select(i => Task.Run(new_sender(channel, sendcount)));
             IEnumerable<Task<int>> recivers = Enumerable.Range(0, recivers_count).Select(i => Task.Run(new_reciver(channel)));
 
             int expected = 0;

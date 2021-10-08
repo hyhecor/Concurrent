@@ -11,7 +11,7 @@ namespace Concurrent.Generic.SoQ
     public class FanOut<T>
     {
         IChannel<T> ChannelIn { get; set; }
-        ConcurrentList<IChannel<T>> ChannelOuts { get; set; } = new ConcurrentList<IChannel<T>>();
+        BlockList<IChannel<T>> ChannelOuts { get; set; } = new BlockList<IChannel<T>>();
 
         public FanOut(IChannel<T> channelIn)
         {
@@ -38,7 +38,7 @@ namespace Concurrent.Generic.SoQ
 
             return newChannelOut;
 
-            IChannel<T> NewChannel() => new BufferedChannel<T>(1);
+            IChannel<T> NewChannel() => new Channel<T>(1);
         }
 
         public bool RemoveChannelOut(IChannel<T> channelOut)

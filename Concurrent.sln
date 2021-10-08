@@ -11,6 +11,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Concurrent.Generic.QoS.Test
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Concurrent.Generic.Test", "Concurrent.Generic.Test\Concurrent.Generic.Test.csproj", "{93CD15F0-3C31-47FE-A778-84FC2B3DF1BE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChannelSync", "ChannelSync\ChannelSync.csproj", "{0B18AD1B-869B-4DA1-8F6E-E70E6082CA8F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Concurrent.Generic.Benchmarks", "Concurrent.Generic.Benchmarks\Concurrent.Generic.Benchmarks.csproj", "{DBD9CF4D-9888-4FDA-A2ED-667BFF998736}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{93CD15F0-3C31-47FE-A778-84FC2B3DF1BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{93CD15F0-3C31-47FE-A778-84FC2B3DF1BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{93CD15F0-3C31-47FE-A778-84FC2B3DF1BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B18AD1B-869B-4DA1-8F6E-E70E6082CA8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B18AD1B-869B-4DA1-8F6E-E70E6082CA8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B18AD1B-869B-4DA1-8F6E-E70E6082CA8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B18AD1B-869B-4DA1-8F6E-E70E6082CA8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBD9CF4D-9888-4FDA-A2ED-667BFF998736}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBD9CF4D-9888-4FDA-A2ED-667BFF998736}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBD9CF4D-9888-4FDA-A2ED-667BFF998736}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBD9CF4D-9888-4FDA-A2ED-667BFF998736}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

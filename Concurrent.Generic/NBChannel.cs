@@ -1,4 +1,4 @@
-﻿//#define CONCURRENT_QUEUE
+﻿#define CONCURRENT_QUEUE
 #if !CONCURRENT_QUEUE
 #define FIFO
 #endif
@@ -7,17 +7,17 @@ using System;
 using System.Collections.Concurrent;
 #endif
 using System.Threading;
+
 namespace Concurrent.Generic
 {
     /// <summary>
-    /// Channel
-    /// (버퍼 크기 제한 채널) 
-    /// <para>입력을 받을때 버퍼 카운트를 확인하여, </para> 
-    /// <para>제한 크기보다 카운트가 작아야 입력을 받는다.</para> 
-    /// <para>카운트가 크다면, 큐가 빠져나갈 때 까지 대기</para> 
+    /// NBChannel (None Blocking Channel)
+    /// (채널; 입력 함수에서 블락 없음)
+    /// <para>입력받은 데이터를 출력 함수에서 열거형 형식으로 반환 한다.</para> 
+    /// <para></para> 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public sealed class Channel<T> : IChannel<T>, IDisposable
+    public sealed class NBChannel<T> : IChannel<T>, IDisposable
     {
         private bool disposedValue;
 
@@ -35,7 +35,7 @@ namespace Concurrent.Generic
             disposedValue = true;
         }
 
-        ~Channel()
+        ~NBChannel()
         {
             Dispose(disposing: false);
         }
@@ -45,6 +45,7 @@ namespace Concurrent.Generic
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
+
 #if CONCURRENT_QUEUE
         ConcurrentQueue<T> Queue { get; set; } = new ConcurrentQueue<T>();
 #endif
@@ -54,29 +55,17 @@ namespace Concurrent.Generic
 
         EventWaitHandle OnClose { get; set; } = new ManualResetEvent(false);
         EventWaitHandle OnSignalIn { get; set; } = new AutoResetEvent(false);
-        EventWaitHandle OnSignalOut { get; set; } = new AutoResetEvent(true);
 
-        WaitHandle[] SignlIn { get; set; }
-        WaitHandle[] SignlOut { get; set; }
+        WaitHandle[] SignalIn { get; set; }
 
-        int Length { get; set; } = 1;
-
-        public Channel(int length = 1)
+        public NBChannel()
         {
-            init(length);
+            init();
         }
 
-        void init(int length)
+        void init()
         {
-            if (length < 0)
-                length = 1;
-            if (length == 0)
-                length = 1;
-
-            Length = length;
-
-            SignlIn = new WaitHandle[] { OnClose, OnSignalIn, };
-            SignlOut = new WaitHandle[] { OnClose, OnSignalOut, };
+            SignalIn = new WaitHandle[] { OnClose, OnSignalIn };
 
             //설정 완료 후 클리어
             Clear();
@@ -93,45 +82,20 @@ namespace Concurrent.Generic
 #endif
             OnClose.Reset();
             OnSignalIn.Reset();
-            OnSignalOut.Set();
         }
 
         public int Count { get => Queue.Count; }
+
         /// <summary>
-        /// In (Blockable)
+        /// None block In
         /// </summary>
         /// <param name="item"></param>
         public void In(T item)
         {
-            //STAT(0) 큐카운트 확인해서
-            //제한 값보다 작으면 큐에 저장
-            if (Queue.TryEnqueue(item, Length))
-            {
-                //STAT(1) 입력 성공
-                //입력 이벤트 SET
-                OnSignalIn.Set();
-
-                //큐 크기가 큐 제한 크기와 비교하여 
-                //수신자가 채널에서 꺼내갈 때까지 대기상태 설정
-                while (Length == Count)
-                {
-                    Thread.Sleep(1);
-                }
-
-                return;
-            }
-            //큐 크기를 넘으면 꺼내는 이벤트 기다리기
-            else
-            {
-                //STAT(2) 큐가 가득찼을 때 출력 기다리기
-                int index = WaitHandle.WaitAny(SignlOut);
-                //종료 이벤트(0) 확인 
-                if (0 == index)
-                    return; 
-            }
-            //STAT(3) 다시 시도
-            //입력에 실패 했지만 채널이 종료되지 않음
-            In(item);
+            //큐에 저장
+            Queue.Enqueue(item);
+            //입력 이벤트 SET
+            OnSignalIn.Set();
         }
 
         /// <summary>
@@ -145,17 +109,13 @@ namespace Concurrent.Generic
             if (Queue.TryDequeue(out item))
             {
                 //STAT(1) 큐에서 성공적으로 입력 값을 꺼냈음
-                //꺼내는 이벤트 SET
-                OnSignalOut.Set();  
-                ////입력 리턴 이벤트 SET
-                //OnSignalQueueOut.Set();
                 //클로저 형태로 리턴
                 return () => item;
             }
             else
             {
                 //STAT(2) 큐가 비었을 때 입력 기다리기
-                var index = WaitHandle.WaitAny(SignlIn);
+                var index = WaitHandle.WaitAny(SignalIn);
                 //종료 이벤트(0) 확인 
                 if (0 == index)
                 {

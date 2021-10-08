@@ -3,14 +3,13 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Concurrent.Generic.QoS.Test
 {
     class FanOut_test
     {
-        Func<IChannel<int>> new_channel = () => new BufferedChannel<int>(1);
+        Func<IChannel<int>> new_channel = () => new Channel<int>(1);
 
         Func<IChannel<int>, int, Func<int>> new_sender { get; set; }
         Func<IChannel<int>, Func<int>> new_reciver { get; set; }
@@ -61,7 +60,8 @@ namespace Concurrent.Generic.QoS.Test
             int expected = 0;
             Task.Run(() =>
             {
-                expected = senders.AsParallel()
+                expected = senders
+                    .AsParallel()
                     .Select((t, seq) =>
                     {
                         var send = t.Result;

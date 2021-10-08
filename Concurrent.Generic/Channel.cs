@@ -3,7 +3,9 @@
 #define FIFO
 #endif
 using System;
+#if CONCURRENT_QUEUE
 using System.Collections.Concurrent;
+#endif
 using System.Threading;
 namespace Concurrent.Generic
 {
@@ -53,11 +55,9 @@ namespace Concurrent.Generic
         EventWaitHandle OnClose { get; set; } = new ManualResetEvent(false);
         EventWaitHandle OnSignalIn { get; set; } = new AutoResetEvent(false);
         EventWaitHandle OnSignalOut { get; set; } = new AutoResetEvent(true);
-        EventWaitHandle OnSignalQueueOut { get; set; } = new ManualResetEvent(false);
 
         WaitHandle[] SignlIn { get; set; }
         WaitHandle[] SignlOut { get; set; }
-        WaitHandle[] SignlQueueOut { get; set; }
 
         int Length { get; set; } = 1;
 
@@ -77,7 +77,6 @@ namespace Concurrent.Generic
 
             SignlIn = new WaitHandle[] { OnClose, OnSignalIn, };
             SignlOut = new WaitHandle[] { OnClose, OnSignalOut, };
-            SignlQueueOut = new WaitHandle[] { OnClose, OnSignalQueueOut, };
 
             //설정 완료 후 클리어
             Clear();
@@ -95,7 +94,6 @@ namespace Concurrent.Generic
             OnClose.Reset();
             OnSignalIn.Reset();
             OnSignalOut.Set();
-            OnSignalQueueOut.Reset();
         }
 
         public int Count { get => Queue.Count; }
@@ -115,10 +113,10 @@ namespace Concurrent.Generic
 
                 //큐 크기가 큐 제한 크기와 비교하여 
                 //수신자가 채널에서 꺼내갈 때까지 대기상태 설정
-                if (Length <= Count)
-                    OnSignalQueueOut.Reset();
-
-                WaitHandle.WaitAny(SignlQueueOut);
+                while (Length == Count)
+                {
+                    Thread.Sleep(1);
+                }
 
                 return;
             }
@@ -149,8 +147,8 @@ namespace Concurrent.Generic
                 //STAT(1) 큐에서 성공적으로 입력 값을 꺼냈음
                 //꺼내는 이벤트 SET
                 OnSignalOut.Set();  
-                //입력 리턴 이벤트 SET
-                OnSignalQueueOut.Set();
+                ////입력 리턴 이벤트 SET
+                //OnSignalQueueOut.Set();
                 //클로저 형태로 리턴
                 return () => item;
             }

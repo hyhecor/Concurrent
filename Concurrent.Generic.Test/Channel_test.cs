@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Concurrent.Generic
+namespace Concurrent.Generic.Test
 {
     class Channel_test
     {
@@ -39,7 +39,7 @@ namespace Concurrent.Generic
         }
 
         [Test]
-        public void TestChannelBuffered()
+        public void TestChannel()
         {
             int sendcount = 1 << 10;
             var channel = new_channel();
@@ -64,7 +64,7 @@ namespace Concurrent.Generic
         }
 
         [Test]
-        public void TestChannelBufferedLinq()
+        public void TestChannelLinq()
         {
             int sendcount = 1 << 10;
             var channel = new_channel();
@@ -86,7 +86,7 @@ namespace Concurrent.Generic
         }
 
         [Test]
-        public void TestChannelBufferedLinqFanin()
+        public void TestChannelLinqFanin()
         {
             var channel = new_channel();
 
@@ -122,7 +122,7 @@ namespace Concurrent.Generic
         }
 
         [Test]
-        public void TestChannelBufferedLinqRace()
+        public void TestChannelLinqRace()
         {
             var channel = new_channel();
 

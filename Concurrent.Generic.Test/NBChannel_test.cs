@@ -8,11 +8,11 @@ using System.Threading;
 using System.Threading.Tasks;
 #endif
 
-namespace Concurrent.Generic
+namespace Concurrent.Generic.Test
 {
-    class NoneBlockChannel_test
+    class NBChannel_test
     {
-        Func<IChannel<int>> new_channel = () => new NoneBlockChannel<int>();
+        Func<IChannel<int>> new_channel = () => new NBChannel<int>();
 
         Func<IChannel<int>, int, Func<int>> new_sender { get; set; }
         Func<IChannel<int>, Func<int>> new_reciver { get; set; }
@@ -43,7 +43,7 @@ namespace Concurrent.Generic
         }
 
         [Test]
-        public void TestChannel()
+        public void TestNBChannel()
         {
             var channel = new_channel();
 
@@ -72,7 +72,7 @@ namespace Concurrent.Generic
         }
 
         [Test]
-        public void TestChannelLinq()
+        public void TestNBChannelLinq()
         {
             int sendcount = 1 << 10;
             var channel = new_channel();
@@ -95,7 +95,7 @@ namespace Concurrent.Generic
         }
 
         [Test]
-        public void TestChannelLinqFanin()
+        public void TestNBChannelLinqFanin()
         {
             var channel = new_channel();
 
@@ -131,7 +131,7 @@ namespace Concurrent.Generic
         }
 
         [Test]
-        public void TestChannelLinqRace()
+        public void TestNBChannelLinqRace()
         {
             var channel = new_channel();
 

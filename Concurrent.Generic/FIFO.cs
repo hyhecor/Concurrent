@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 namespace Concurrent.Generic
 {
-    internal sealed class FIFO<T> : IQueue<T>
+    public sealed class FIFO<T> : IQueue<T>
     {
         LinkedList<T> LList { get; set; } = new LinkedList<T>();
 

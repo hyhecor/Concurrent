@@ -11,13 +11,13 @@ using System.Threading;
 namespace Concurrent.Generic
 {
     /// <summary>
-    /// Channel 
-    /// (채널)
+    /// NBChannel (None Blocking Channel)
+    /// (채널; 입력 함수에서 블락 없음)
     /// <para>입력받은 데이터를 출력 함수에서 열거형 형식으로 반환 한다.</para> 
     /// <para></para> 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public sealed class NoneBlockChannel<T> : IChannel<T>, IDisposable
+    public sealed class NBChannel<T> : IChannel<T>, IDisposable
     {
         private bool disposedValue;
 
@@ -35,7 +35,7 @@ namespace Concurrent.Generic
             disposedValue = true;
         }
 
-        ~NoneBlockChannel()
+        ~NBChannel()
         {
             Dispose(disposing: false);
         }
@@ -58,7 +58,7 @@ namespace Concurrent.Generic
 
         WaitHandle[] SignalIn { get; set; }
 
-        public NoneBlockChannel()
+        public NBChannel()
         {
             init();
         }

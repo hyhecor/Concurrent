@@ -3,7 +3,6 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Concurrent.Generic.QoS.Test
@@ -61,7 +60,8 @@ namespace Concurrent.Generic.QoS.Test
             int expected = 0;
             Task.Run(() =>
             {
-                expected = senders.AsParallel()
+                expected = senders
+                    .AsParallel()
                     .Select((t, seq) =>
                     {
                         var send = t.Result;

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Concurrent.Generic
+namespace Concurrent.Generic.QoS.Test
 {
     class Select_test
     {

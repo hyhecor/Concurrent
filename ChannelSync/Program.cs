@@ -1,5 +1,6 @@
 ﻿using Concurrent.Generic;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ChannelSync
@@ -8,23 +9,61 @@ namespace ChannelSync
     {
         static void Main(string[] args)
         {
-            IChannel<int> channel = new Channel<int>(2);
+            Program app = new Program();
+            var result = app.Run();
 
-            Task.Run(()=>
+            Environment.Exit(result ? 0 : -1);
+        }
+
+        bool Run()
+        {
+            IChannel<int> channel_in = new Channel<int>(1);
+            IChannel<int> channel_out = new Channel<int>(1);
+
+            Task.Run(Reciver(channel_in, channel_out));
+
+            var send_count = 1 << 7;
+
+            LogWrite($"Send 0 to {send_count}");
+
+            var sum = 0;
+            foreach (var value in Enumerable.Range(0, send_count))
             {
-                Console.WriteLine($"{DateTime.Now} Delay");
-                Task.Delay(TimeSpan.FromSeconds(5)).Wait();
+                sum += value;
+                channel_in.In(value);
+            }
+            channel_in.Close();
 
-                Console.WriteLine($"{DateTime.Now} demand");
-                var recv = channel.Out();
-                Console.WriteLine($"{DateTime.Now} gain");
-            });
+            return channel_out.Out()() == sum;
+        }
 
-            var send = 0;
+        Action Reciver(IChannel<int> channel_in, IChannel<int> channel_out)
+        {
+            return ()=> 
+            {
+                LogWrite($"reciver start");
 
-            Console.WriteLine($"{DateTime.Now} Send");
-            channel.In(send);
-            channel.In(send);
+                LogWrite($"Delay");
+                Task.Delay(TimeSpan.FromSeconds(1)).Wait();
+
+                LogWrite($"consume");
+
+                var sum = 0;
+                foreach (var value in channel_in.Range())
+                {
+                    sum += value;
+                    LogWrite($"Recv({value})");
+                }
+
+                channel_out.In(sum);
+
+                LogWrite($"reciver closed");
+            };
+        }
+
+        void LogWrite(string msg)
+        {
+            Console.WriteLine($"{DateTime.Now} {msg}");
         }
     }
 }

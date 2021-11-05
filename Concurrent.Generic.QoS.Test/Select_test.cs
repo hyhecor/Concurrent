@@ -147,7 +147,7 @@ namespace Concurrent.Generic.QoS.Test
             {
                 expected_0 = Task.Run(new_sender(channel_0, sendcount)).Result;
                 channel_0.Close();
-                Console.WriteLine($"{DateTime.Now} Sender: {expected_0}");
+                Console.WriteLine($"{DateTime.Now} Sender 0: {expected_0}");
             });
 
             int expected_1 = 0;
@@ -155,7 +155,7 @@ namespace Concurrent.Generic.QoS.Test
             {
                 expected_1 = Task.Run(new_sender(channel_1, sendcount)).Result;
                 channel_1.Close();
-                Console.WriteLine($"{DateTime.Now} Sender: {expected_1}");
+                Console.WriteLine($"{DateTime.Now} Sender 1: {expected_1}");
             });
 
             Task.Run(() => 

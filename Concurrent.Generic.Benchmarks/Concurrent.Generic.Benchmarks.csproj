@@ -21,9 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Concurrent.Generic">
-      <HintPath>..\Concurrent.Generic\bin\Release\netcoreapp3.1\Concurrent.Generic.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\Concurrent.Generic\Concurrent.Generic.csproj" />
   </ItemGroup>
 
 </Project>

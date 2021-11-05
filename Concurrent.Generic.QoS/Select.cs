@@ -25,6 +25,11 @@ namespace Concurrent.Generic
         ~Select()
         {
             Close();
+
+            while (false == (Tasks.Count(t => t.IsCompleted) == Tasks.Count()))
+            {
+
+            }
         }
 
         void init()
@@ -36,7 +41,7 @@ namespace Concurrent.Generic
         {
             Closers.Foreach(close => close());
 
-            Tasks.Foreach(t => t.Wait());
+            Closers.Clear();
         }
 
         /// <summary>
@@ -74,19 +79,13 @@ namespace Concurrent.Generic
 
             void KeepReadChannel()
             {
-                while (true)
+                channel.Range().Foreach(o =>
                 {
-                    var get_func = channel.Out();
-
-                    //채널 종료
-                    if (get_func is null)
-                        return;
-
                     OnSignalOut.Reset();
-                    value = get_func();
+                    value = o;
                     OnSignalIn.Set(); //Set
                     OnSignalOut.WaitOne(); //Wait
-                }
+                });
             }
 
             EventWaitHandle NewEventWaitHandle()

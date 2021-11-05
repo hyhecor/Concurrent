@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
 namespace Concurrent.Generic.SoQ
 {
@@ -13,14 +11,38 @@ namespace Concurrent.Generic.SoQ
         IChannel<T> ChannelIn { get; set; }
         BlockList<IChannel<T>> ChannelOuts { get; set; } = new BlockList<IChannel<T>>();
 
+        BlockList<Task> Tasks { get; set; } = new BlockList<Task>();
+     
         public FanOut(IChannel<T> channelIn)
         {
             ChannelIn = channelIn;
+
+#if NET40
+            var task = new Task(FanOutWork);
+            task.Start();
+            Tasks.Add(task); //백그라운드 실행
+#elif NET45_OR_GREATER
+            Tasks.Add(Task.Run(FanOutWork)); //백그라운드 실행
+#else
+            Tasks.Add(Task.Run(FanOutWork)); //백그라운드 실행
+#endif
+
+            void FanOutWork()
+            {
+                ChannelIn.Range().Foreach(o => ChannelOuts.Foreach(c => c.In(o)));
+
+                Close();
+            }
         }
 
         ~FanOut()
         {
             Close();
+
+            while (false == (Tasks.Count(t => t.IsCompleted) == Tasks.Count()))
+            {
+
+            }
         }
 
         public void Close()
@@ -38,30 +60,13 @@ namespace Concurrent.Generic.SoQ
 
             return newChannelOut;
 
-            IChannel<T> NewChannel() => new Channel<T>(1);
+            IChannel<T> NewChannel() => new NBChannel<T>();
+
         }
 
         public bool RemoveChannelOut(IChannel<T> channelOut)
         {
             return ChannelOuts.Remove(channelOut);
-        }
-
-        public void Run()
-        {
-            while (true)
-            {
-                var get_func = ChannelIn.Out();
-
-                if (get_func is null)
-                    break; //채널 종료됨
-
-                var item = get_func();
-
-                //Fan Out
-                ChannelOuts.Foreach(channel => channel.In(item));
-            }
-
-            ChannelOuts.Foreach(c => c.Close());
         }
     }
 }

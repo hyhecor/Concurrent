@@ -9,7 +9,7 @@ namespace Concurrent.Generic.QoS.Test
 {
     class FanOut_test
     {
-        Func<IChannel<int>> new_channel = () => new Channel<int>(1);
+        Func<IChannel<int>> new_channel = () => new Channel<int>();
 
         Func<IChannel<int>, int, Func<int>> new_sender { get; set; }
         Func<IChannel<int>, Func<int>> new_reciver { get; set; }
@@ -70,10 +70,6 @@ namespace Concurrent.Generic.QoS.Test
                     }).Aggregate(0, (a, b) => a + b);
                 channelIn.Close();
             });
-
-            //recivers = recivers.ToArray();
-
-            fanout.Run();
 
             recivers.Map((seq, t) =>
             {

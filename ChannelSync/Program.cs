@@ -17,8 +17,8 @@ namespace ChannelSync
 
         bool Run()
         {
-            IChannel<int> channel_in = new Channel<int>(1);
-            IChannel<int> channel_out = new Channel<int>(1);
+            IChannel<int> channel_in = new Channel<int>();
+            IChannel<int> channel_out = new Channel<int>();
 
             Task.Run(Reciver(channel_in, channel_out));
 
